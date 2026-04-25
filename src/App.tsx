@@ -17,7 +17,7 @@ const App: React.FC = () => {
         <Router>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<PublicHomePage />} />
+              <Route path="/" element={isAuthenticated ? <AuthenticatedHomePage /> : <PublicHomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route element={<ProtectedRoute />}>

@@ -30,15 +30,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, []);
 
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const login = async (identifier: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await api.login(identifier, password);
       localStorage.setItem('token', response.token);
       const userData = await api.getCurrentUser();
       setUser(userData);
       setIsAuthenticated(true);
-      navigate('/');
-    } catch (error) {
+      setIsLoading(false);
+      return true;
+    } catch (error: any) {
+      setIsLoading(false);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError('Login failed. Please try again.');
+      }
       throw error;
     }
   };
@@ -56,10 +70,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (username: string, email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
     try {
       await api.register(username, email, password);
+      setIsLoading(false);
       navigate('/login');
-    } catch (error) {
+      return true;
+    } catch (error: any) {
+      setIsLoading(false);
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error);
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
       throw error;
     }
   };
@@ -69,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register, error, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
